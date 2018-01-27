@@ -6,11 +6,11 @@ All these works are be done in group
 
 Group members are :
 
-Guodong Liu[@Goudong Liu](https://github.com/Vamix) 
+Guodong Liu [@Goudong Liu](https://github.com/Vamix) 
 
-Yiwei Li   [@Yiwei Li   ](https://github.com/leepoly)
+Yiwei Li    [@Yiwei Li   ](https://github.com/leepoly)
 
-Penghui Li [@Penghui Li ](https://github.com/DoubiLi)
+Penghui Li  [@Penghui Li ](https://github.com/DoubiLi)
 
 #lab2:
 
