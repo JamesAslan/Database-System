@@ -1,0 +1,327 @@
+﻿using System;
+using System.IO;
+
+class Test
+{
+    static string[] all_station = new string[10000];
+    static int Station_max = 1;
+    static StreamWriter as_wr;
+    static StreamWriter ts_wr;
+    static StreamWriter tl_wr;
+
+    public static void Record_stationlist()
+    {
+        StreamWriter wr = new StreamWriter(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10_wash\trainsofcity.tbl");
+        StreamReader sr = new StreamReader(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\all-stations.txt");
+        int linei = 0;
+        string line;
+        string[] in_i;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+
+            in_i = line.Split(',');
+            in_i[0] = in_i[0].Trim();
+
+            string line_out = in_i[2] + "," + in_i[1] + "," + in_i[0];
+            all_station[Convert.ToInt32(in_i[0])] = in_i[1]; //Record (station_name_i, outerstationid_i) to memory
+            if (Convert.ToInt32(in_i[0]) > Station_max)
+                Station_max = Convert.ToInt32(in_i[0]);
+
+        }
+        wr.Close();
+
+    }
+
+    public static void Wash_stationlist()
+    {
+        StreamWriter wr = new StreamWriter(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10_wash\trainsofcity.tbl");
+        StreamReader sr = new StreamReader(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\all-stations.txt");
+        int linei = 0;
+        string line;
+        string[] in_i;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+
+            in_i = line.Split(',');
+            in_i[0]=in_i[0].Trim();
+            
+            string line_out = in_i[2] + "," + in_i[1] + "," + in_i[0];
+
+            Console.WriteLine(line_out);
+            wr.WriteLine(line_out);
+        }
+        wr.Close();
+
+    }
+
+    public static int FindStationOuterID(string StationName)
+    {
+        int i;
+        for (i = 0; i <= Station_max; i++)
+        {
+            if (StationName == all_station[i])
+                return i;
+        }
+        return -1;
+    }
+
+    public static int Time2Minint(string t)
+    {
+        string[] tmp = t.Split(':');
+        return Convert.ToInt32(tmp[0])*60+Convert.ToInt32(tmp[1]);
+    }
+
+    public static void Wash_filei(string inputfile)
+    {
+        StreamReader sr = new StreamReader(inputfile);
+        int id, tmp,linei=-1;
+        string line;
+        string[] in_i;
+        string[] out_i;
+        string[] out_tsfile = new string[100];
+        string[] out_asfile = new string[100];
+        FileInfo ifile = new FileInfo(inputfile);
+        string checi = ifile.Name;
+        int ArriveTime_min;
+        int StartTime_min;
+        int Delta_day=0;
+        int Forbid_Flag;
+        string last_starttimemin = "00:-01";
+        int innermax=-1;
+        tmp = checi.IndexOf(".");
+        checi = checi.Substring(0, tmp);
+        int en_yz = 0, en_rz = 0, en_yws = 0, en_ywz = 0, en_ywx = 0, en_rws = 0, en_rwx = 0;
+
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            Forbid_Flag = 0;
+            linei++;
+            if (linei == 0) continue;
+
+            in_i = line.Split(',');
+            out_i = new string[15];
+            for (id = 0; id <= 9; id++)
+            {
+                in_i[id] = in_i[id].Trim();
+            }
+            //InnerStation ID
+            out_i[0] = in_i[0];
+            if (Convert.ToInt32(out_i[0]) > innermax)
+                innermax = Convert.ToInt32(out_i[0]);
+            //Station Name
+            out_i[1] = in_i[1];
+            //到达时间
+            if (in_i[2] == "-") out_i[2] = in_i[3];
+            else out_i[2] = in_i[2];
+            ArriveTime_min = Time2Minint(out_i[2]);
+            if (ArriveTime_min < Time2Minint(last_starttimemin)) Delta_day += 1;
+            //出发时间
+            if (in_i[3] == "-") out_i[3] = in_i[2];
+            else out_i[3] = in_i[3];
+            StartTime_min = Time2Minint(out_i[3]);
+
+            if (StartTime_min < ArriveTime_min) Delta_day += 1;
+            if (Delta_day > 0)
+            {
+                ArriveTime_min += 1440 * Delta_day;
+                StartTime_min += 1440 * Delta_day;
+            }
+            //if (Delta_day >= 2)
+                //Console.WriteLine("haha " + Delta_day + " " + checi);
+            last_starttimemin = out_i[3];
+
+            //停留时间
+            out_i[4] = "";
+            //历时
+            out_i[5] = "";
+            //里程
+            if (in_i[6] == "-") out_i[6] = "0";
+            else out_i[6] = in_i[6];
+            //硬座/软座
+            if (in_i[7] == "-")
+            {
+                out_i[7] = "0";
+                out_i[8] = "0";
+            }
+            else
+            {
+                tmp = in_i[7].IndexOf('/');
+                out_i[7] = in_i[7].Substring(0, tmp);
+                out_i[7] = (out_i[7] == "-") ? "0" : out_i[7];
+                in_i[7] = in_i[7].Substring(tmp + 1);
+                if (in_i[7] == "-")
+                {
+                    out_i[8] = "0";
+                }
+                else out_i[8] = in_i[7];
+
+                if (out_i[7] != "0") en_yz = 1;
+                if (out_i[8] != "0") en_rz = 1;
+            }
+            //硬卧
+            if (in_i[8] == "-" || in_i[8] == "//")
+            {
+                out_i[9] = "0";
+                out_i[10] = "0";
+                out_i[11] = "0";
+            }
+            else
+            {
+                string[] in_i8 = new string[3];
+                /*if (in_i[8] == "39/42/44")
+                    Console.WriteLine("haha");*/
+                in_i8 = in_i[8].Split('/');
+                out_i[9] = (in_i8[0][0] == '-') ? "0" : in_i8[0];
+                out_i[10] = (in_i8[1][0] == '-') ? "0" : in_i8[1];
+                out_i[11] = (in_i8[2][0] == '-') ? "0" : in_i8[2];
+                if (out_i[9] != "0") en_yws = 1;
+                if (out_i[10] != "0") en_ywz = 1;
+                if (out_i[11] != "0") en_ywx = 1;
+            }
+            //软卧
+            if (in_i[9] == "-" || in_i[9] == "/")
+            {
+                out_i[12] = "0";
+                out_i[13] = "0";
+            }
+            else
+            {
+                string[] in_i9 = new string[2];
+                in_i9 = in_i[9].Split('/');
+                out_i[12] = (in_i9[0][0] == '-') ? "0" : in_i9[0];
+                out_i[13] = (in_i9[1][0] == '-') ? "0" : in_i9[1];
+                if (out_i[12] != "0") en_rws = 1;
+                if (out_i[13] != "0") en_rwx = 1;
+            }
+
+            if (out_i[7] == "0" && out_i[8] == "0" && out_i[9] == "0" && out_i[10] == "0" && out_i[11] == "0" &&
+                out_i[12] == "0" && out_i[13] == "0" && out_i[0]!="1")
+                Forbid_Flag = 1;
+
+            string line_out = "";
+            
+
+            int OuterStationID = FindStationOuterID(in_i[1]);
+
+            line_out = out_i[0] + "," + checi + "," + Convert.ToString(OuterStationID) + ",";
+
+            line_out += out_i[1] + ",";
+            line_out += out_i[6] + ",";
+            for (id = 7; id <= 13; id++)
+            {
+                line_out += out_i[id] + ',';
+            }
+            line_out += Convert.ToString(Delta_day) + ",";
+            line_out += out_i[2] + ",";
+            line_out += out_i[3] + ",";
+            line_out += Convert.ToString(ArriveTime_min) + ",";
+            line_out += Convert.ToString(StartTime_min) + ",";
+            line_out += Convert.ToString(Forbid_Flag) ;
+
+
+            out_tsfile[linei] = line_out;
+
+            //Console.WriteLine(line_out); //debug
+            //Console.WriteLine(Delta_day);
+           //ts_wr.WriteLine(line_out);
+        }
+
+        for (int i = 1; i <= innermax; i++)
+        {
+            ts_wr.WriteLine(out_tsfile[i]);
+        }
+
+        tl_wr.WriteLine(checi + "," + en_yz + "," + en_rz + "," + en_yws + "," + en_ywz + "," + en_ywx + "," + en_rws + "," + en_rwx);
+
+        int yzcount = (en_yz==1) ? 5 :0 ;
+        int rzcount = (en_rz==1) ? 5 :0;
+        int ywscount = (en_yws==1) ? 5 :0;
+        int ywzcount = (en_ywz==1) ? 5 :0;
+        int ywxcount = (en_ywx==1) ? 5 :0;
+        int rwscount = (en_rws==1) ? 5 :0;
+        int rwxcount = (en_rwx==1) ? 5 :0;
+        int day,inner_j;
+        string startdate;
+        for (day = 23; day <= 30; day++)
+        {
+            startdate = "2017/11/" + Convert.ToInt32(day);
+            as_wr.WriteLine(checi + "," + startdate + "," + "1" + "," + "0" + "," + "0" + "," +
+                                "0" + "," + "0" + "," + "0" + "," + "0" + "," + "0");
+            for (inner_j = 2; inner_j <= innermax; inner_j++)
+            {
+                
+                as_wr.WriteLine(checi + "," + startdate + "," + inner_j + "," + yzcount + "," + rzcount + "," +
+                                ywscount + "," + ywzcount + "," + ywxcount + "," + rwscount + "," + rwxcount);
+            }
+        }
+    }
+
+    public static void ListFiles(FileSystemInfo info, int param)
+    {
+        if (!info.Exists) return;
+
+        DirectoryInfo dir = info as DirectoryInfo;
+        //不是目录 
+        if (dir == null) return;
+
+        FileSystemInfo[] files = dir.GetFileSystemInfos();
+        for (int i = 0; i < files.Length; i++)
+        {
+            FileInfo file = files[i] as FileInfo;
+            
+            //是文件 
+            if (file != null)
+            {
+                if (file.FullName.IndexOf(".csv") == -1) continue;
+                if (param == 1)
+                {
+                    Wash_filei(file.FullName);
+                    //Console.WriteLine("Wash Succeeefully: " + out_file);
+                }
+                else
+                {
+                    
+                }
+            }
+            //对于子目录，进行递归调用 
+            else
+                ListFiles(files[i], param);
+
+        }
+    } 
+
+    public static void Main()
+    {
+        /*Function 1: generate all station_i.tbl*/
+        ts_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\trainstation.tbl");
+        as_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\availableseat.tbl");
+        tl_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\trainlist.tbl");
+        Record_stationlist();
+        DirectoryInfo readFolder = new DirectoryInfo(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10");
+        ListFiles(readFolder,1);
+
+        /*Function 2: generate trainsofcity.tbl*/
+        //Wash_stationlist();
+
+        //Test : generate one list 1095.csv->trainstation.tbl
+        /*ts_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\trainstation.tbl");
+        as_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\availableseat.tbl");
+        tl_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v5\data\trainlist.tbl");
+        Test.Record_stationlist();
+        Test.Wash_filei(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\z\z69.csv");*/
+
+
+        ts_wr.Close();
+        as_wr.Close();
+        tl_wr.Close();
+    }
+}
+        

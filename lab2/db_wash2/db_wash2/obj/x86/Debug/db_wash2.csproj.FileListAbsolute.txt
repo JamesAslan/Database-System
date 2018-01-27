@@ -1,0 +1,4 @@
+c:\users\lyw\documents\visual studio 2010\Projects\db_wash2\db_wash2\bin\Debug\db_wash2.exe
+c:\users\lyw\documents\visual studio 2010\Projects\db_wash2\db_wash2\bin\Debug\db_wash2.pdb
+c:\users\lyw\documents\visual studio 2010\Projects\db_wash2\db_wash2\obj\x86\Debug\db_wash2.exe
+c:\users\lyw\documents\visual studio 2010\Projects\db_wash2\db_wash2\obj\x86\Debug\db_wash2.pdb

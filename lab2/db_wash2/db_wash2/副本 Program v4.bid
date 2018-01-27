@@ -1,0 +1,372 @@
+﻿
+using System;
+using System.IO;
+
+class Test
+{
+    static string[] all_station = new string[10000];
+    static int Station_max = 1;
+    static StreamWriter as_wr;
+    static StreamWriter ts_wr;
+
+    public static void Record_stationlist()
+    {
+        StreamWriter wr = new StreamWriter(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10_wash\trainsofcity.tbl");
+        StreamReader sr = new StreamReader(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\all-stations.txt");
+        int linei = 0;
+        string line;
+        string[] in_i;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+
+            in_i = line.Split(',');
+            in_i[0] = in_i[0].Trim();
+
+            string line_out = in_i[2] + "," + in_i[1] + "," + in_i[0];
+            all_station[Convert.ToInt32(in_i[0])] = in_i[1]; //Record (station_name_i, outerstationid_i) to memory
+            if (Convert.ToInt32(in_i[0]) > Station_max)
+                Station_max = Convert.ToInt32(in_i[0]);
+
+        }
+        wr.Close();
+
+    }
+
+    public static void Wash_stationlist()
+    {
+        StreamWriter wr = new StreamWriter(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10_wash\trainsofcity.tbl");
+        StreamReader sr = new StreamReader(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\all-stations.txt");
+        int linei = 0;
+        string line;
+        string[] in_i;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+
+            in_i = line.Split(',');
+            in_i[0]=in_i[0].Trim();
+            
+            string line_out = in_i[2] + "," + in_i[1] + "," + in_i[0];
+
+            Console.WriteLine(line_out);
+            wr.WriteLine(line_out);
+        }
+        wr.Close();
+
+    }
+
+    public static int FindStationOuterID(string StationName)
+    {
+        int i;
+        for (i = 0; i <= Station_max; i++)
+        {
+            if (StationName == all_station[i])
+                return i;
+        }
+        return -1;
+    }
+
+    public static void Wash_filei(string inputfile)
+    {
+        StreamReader sr = new StreamReader(inputfile);
+        int id, tmp,linei=0;
+        string line;
+        string[] in_i;
+        string[] out_i;
+        string[][] out2;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+            if (linei == 1) continue;
+
+            in_i = line.Split(',');
+            out_i = new string[15];
+            for (id = 0; id <= 9; id++)
+            {
+                in_i[id] = in_i[id].Trim();
+            }
+            out_i[0] = in_i[0];
+            out_i[1] = in_i[1];
+            //到达时间
+            if (in_i[2] == "-") out_i[2] = "00:00";
+            else out_i[2] = in_i[2];
+            //出发时间
+            //out_i[3] = in_i[3];
+            out_i[3] = "";
+            //停留时间
+            if (in_i[4] == "-" || in_i[4] == "00分" || in_i[4] == "") out_i[4] = "00:00";
+            else
+            {
+                in_i[4] = in_i[4].Replace("分", "");
+                if (in_i[4].Length == 1) out_i[4] = "00:0" + in_i[4];
+                else 
+                {
+                    if (Convert.ToInt32(in_i[4])>=60)
+                        out_i[4] = "01:" + Convert.ToString(Convert.ToInt32(in_i[4]) - 60);
+                    else
+                        out_i[4] = "00:" + in_i[4];
+                }
+                //if (Convert.ToInt32(in_i[4]) >= 60)
+                    //Console.WriteLine("haha:   " + line + "\n" + inputfile);
+            }
+
+            //历时
+            out_i[5] = "";
+            //if (in_i[5] == "-") out_i[5] = "0";
+            //else out_i[5] = in_i[5];
+            //里程
+            if (in_i[6] == "-") out_i[6] = "0";
+            else out_i[6] = in_i[6];
+
+            //硬座/软座
+            if (in_i[7] == "-")
+            {
+                out_i[7] = "0";
+                out_i[8] = "0";
+            }
+            else
+            {
+                tmp = in_i[7].IndexOf('/');
+                out_i[7] = in_i[7].Substring(0, tmp);
+                out_i[7] = (out_i[7] == "-") ? "0" : out_i[7];
+                in_i[7] = in_i[7].Substring(tmp + 1);
+                if (in_i[7] == "-")
+                {
+                    out_i[8] = "0";
+                }
+                else out_i[8] = in_i[7];
+            }
+            //硬卧
+            if (in_i[8] == "-" || in_i[8] == "//")
+            {
+                out_i[9] = "0";
+                out_i[10] = "0";
+                out_i[11] = "0";
+            }
+            else
+            {
+                string[] in_i8 = new string[3];
+                /*if (in_i[8] == "39/42/44")
+                    Console.WriteLine("haha");*/
+                in_i8 = in_i[8].Split('/');
+                out_i[9] = (in_i8[0][0] == '-') ? "0" : in_i8[0];
+                out_i[10] = (in_i8[1][0] == '-') ? "0" : in_i8[1];
+                out_i[11] = (in_i8[2][0] == '-') ? "0" : in_i8[2];
+            }
+            //软卧
+            if (in_i[9] == "-" || in_i[9] == "/")
+            {
+                out_i[12] = "0";
+                out_i[13] = "0";
+            }
+            else
+            {
+                string[] in_i9 = new string[2];
+                in_i9 = in_i[9].Split('/');
+                out_i[12] = (in_i9[0][0] == '-') ? "0" : in_i9[0];
+                out_i[13] = (in_i9[1][0] == '-') ? "0" : in_i9[1];
+            }
+
+            string line_out = "";
+            FileInfo ifile = new FileInfo(inputfile);
+            string checi = ifile.Name;
+            tmp = checi.IndexOf(".");
+            checi = checi.Substring(0, tmp);
+            int OuterStationID = FindStationOuterID(in_i[1]);
+
+            line_out = out_i[0] + "," + checi + "," + Convert.ToString(OuterStationID) + ",";
+
+            for (id = 1; id <= 12; id++)
+            {
+                if (id == 3 || id == 5) continue;
+                line_out += out_i[id] + ',';
+            }
+            line_out += out_i[13];
+            //Console.WriteLine(line_out);
+            ts_wr.WriteLine(line_out);
+        }
+        
+    }
+
+    public static void create_as(string inputfile,string startdate)
+    {
+        StreamReader sr = new StreamReader(inputfile);
+        int id, tmp, linei = 0;
+        string line;
+        string[] in_i;
+        string[] out_i;
+        // Read and display lines from the file until the end of 
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            linei++;
+            if (linei == 1) continue;
+
+            in_i = line.Split(',');
+            out_i = new string[15];
+            for (id = 0; id <= 9; id++)
+            {
+                in_i[id] = in_i[id].Trim();
+            }
+            out_i[0] = in_i[0];
+            out_i[1] = in_i[1];
+            //到达时间
+            if (in_i[2] == "-") out_i[2] = "00:00";
+            else out_i[2] = in_i[2];
+            //出发时间
+            //out_i[3] = in_i[3];
+            out_i[3] = "";
+            //停留时间
+            if (in_i[4] == "-" || in_i[4] == "00分") out_i[4] = "00:00";
+            else
+            {
+                out_i[4] = "00:" + in_i[4].Replace("分", "");
+            }
+
+            //历时
+            out_i[5] = "";
+            //if (in_i[5] == "-") out_i[5] = "0";
+            //else out_i[5] = in_i[5];
+            //里程
+            if (in_i[6] == "-") out_i[6] = "0";
+            else out_i[6] = in_i[6];
+
+            //硬座/软座
+            if (in_i[7] == "-")
+            {
+                out_i[7] = "0";
+                out_i[8] = "0";
+            }
+            else
+            {
+                tmp = in_i[7].IndexOf('/');
+                out_i[7] = in_i[7].Substring(0, tmp);
+                out_i[7] = (out_i[7][0] == '-') ? "0" : "5";
+                in_i[7] = in_i[7].Substring(tmp + 1);
+                out_i[8] = (in_i[7] == "-") ? "0" : "5";
+            }
+            //硬卧
+            if (in_i[8] == "-" || in_i[8] == "//")
+            {
+                out_i[9] = "0";
+                out_i[10] = "0";
+                out_i[11] = "0";
+            }
+            else
+            {
+                string[] in_i8 = new string[3];
+                in_i8 = in_i[8].Split('/');
+                out_i[9] = (in_i8[0][0] == '-') ? "0" : "5";
+                out_i[10] = (in_i8[1][0] == '-') ? "0" : "5";
+                out_i[11] = (in_i8[2][0] == '-') ? "0" : "5";
+            }
+            //软卧
+            if (in_i[9] == "-" || in_i[9] == "/")
+            {
+                out_i[12] = "0";
+                out_i[13] = "0";
+            }
+            else
+            {
+                string[] in_i9 = new string[2];
+                in_i9 = in_i[9].Split('/');
+                out_i[12] = (in_i9[0][0] == '-') ? "0" : "5";
+                out_i[13] = (in_i9[1][0] == '-') ? "0" : "5";
+            }
+
+            string line_out = "";
+            FileInfo ifile = new FileInfo(inputfile);
+            string checi = ifile.Name;
+            tmp = checi.IndexOf(".");
+            checi = checi.Substring(0, tmp) +","+startdate + "," + out_i[0]+",";
+
+            line_out = checi;
+
+            for (id = 7; id <= 12; id++)
+            {
+                line_out += out_i[id] + ',';
+            }
+            line_out += out_i[13];
+
+            as_wr.WriteLine(line_out);
+            //Console.WriteLine(line_out); //debug
+        }
+    }
+
+
+    public static void ListFiles(FileSystemInfo info, int param)
+    {
+        if (!info.Exists) return;
+
+        DirectoryInfo dir = info as DirectoryInfo;
+        //不是目录 
+        if (dir == null) return;
+
+        FileSystemInfo[] files = dir.GetFileSystemInfos();
+        for (int i = 0; i < files.Length; i++)
+        {
+            FileInfo file = files[i] as FileInfo;
+            
+            //是文件 
+            if (file != null)
+            {
+                if (file.FullName.IndexOf(".csv") == -1) continue;
+                if (param == 1)
+                {
+                    string out_file = file.FullName.Replace(".csv", "_w.tbl");
+                    out_file = out_file.Replace("train-2016-10\\", "train-2016-10_wash\\");
+                    Wash_filei(file.FullName);
+                    //Console.WriteLine("Wash Succeeefully: " + out_file);
+                }
+                else
+                {
+                    int day;
+                    for (day = 20; day <= 30; day++)
+                    {
+                        create_as(file.FullName, @"2017/11/" + Convert.ToString(day));
+                        //Console.WriteLine("Create as Line: " + file.FullName);
+                    }
+                }
+            }
+            //对于子目录，进行递归调用 
+            else
+                ListFiles(files[i], param);
+
+        }
+    } 
+
+    public static void Main()
+    {
+        /*Function 1: generate all station_i.tbl*/
+        ts_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v2\data\trainstation.tbl");
+        Record_stationlist();
+        DirectoryInfo readFolder = new DirectoryInfo(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10");
+        ListFiles(readFolder,1);
+        ts_wr.Close();
+
+        /*Function 2: generate trainsofcity.tbl*/
+        //Wash_stationlist();
+
+        /*Function 3: generate availableseat.tbl*/
+        //as_wr = new StreamWriter(@"E:\ucas\sjk数据库\Lab2\train_v2\data\availableseat.tbl");
+        //DirectoryInfo readFolder = new DirectoryInfo(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10");
+        //ListFiles(readFolder,2);
+        //as_wr.Close();
+
+        //Test 1:
+        //Record_stationlist();
+        //Test.Wash_filei(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\g\G101.csv", @"E:\ucas\sjk数据库\Lab2\train_v1\data\G101_w.tbl");
+
+        //Test 3:
+        //create_as(@"E:\UCAS\sjk数据库\train-2016-10-v4\train-2016-10\g\G101.csv", @"2017/11/20");
+        //as_wr.Close();
+    }
+}
+        
