@@ -12,10 +12,10 @@ Group members are :
 
 [@Penghui Li ](https://github.com/DoubiLi)
 
-lab2:
+#lab2:
 
 An application of database system, it's a train ticket order website
 
-lab3:
+#lab3:
 
 A simple implement of database system
