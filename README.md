@@ -2,7 +2,7 @@
 
 Assignments for Database System
 
-All these works are be done in group
+All these works are done in group
 
 Group members are :
 
